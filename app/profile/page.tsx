@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../src/lib/supabase";
 
 export default function ProfilePage() {
+  const router = useRouter();
+
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -30,15 +33,11 @@ export default function ProfilePage() {
 
     alert("Profil sikeresen mentve!");
 
-    setAge("");
-    setWeight("");
-    setHeight("");
-    setGoal("Fogyás");
-    setActivity("Közepes");
+    router.push("/mealplan");
   };
 
   return (
-    <main className="min-h-screen bg-[#f8f6ef] py-20 px-6">
+    <main className="min-h-screen bg-[#f8f6ef] px-6 py-20">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 text-center">
           <div className="inline-flex items-center rounded-full border border-[#7A9A2D]/20 bg-white/70 px-4 py-2 text-sm font-medium text-[#7A9A2D] backdrop-blur-md">
