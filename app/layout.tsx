@@ -29,7 +29,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen bg-[#f8f6ef] text-[#111827]">
-        <header className="sticky top-0 z-50 border-b border-black/5 bg-[#f8f6ef]/90 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-black/5 bg-[#f8f6ef]/95 backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
             <Link
               href="/"
@@ -38,7 +38,7 @@ export default function RootLayout({
               PaleoAI
             </Link>
 
-            <nav className="flex items-center gap-3 text-sm font-medium md:gap-8 md:text-base">
+            <nav className="flex items-center gap-4 text-sm font-semibold text-black md:gap-8 md:text-base">
               <Link
                 href="/profile"
                 className="transition-colors hover:text-[#7A9A2D]"
