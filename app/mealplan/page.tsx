@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+
 
 type MealPlanDay = {
   day: string;
@@ -21,7 +21,7 @@ export default function MealPlanPage() {
   const [loading, setLoading] = useState(false);
   const [mealplan, setMealplan] = useState<MealPlan | null>(null);
 
-  const searchParams = useSearchParams();
+  
 
   const [loadingMessage, setLoadingMessage] = useState(
     "📊 Kalóriaszükséglet számítása..."
@@ -147,12 +147,16 @@ const generateRecipe = async (meal: string) => {
 };
 
   useEffect(() => {
-    const autogen = searchParams.get("autogen");
+  const params = new URLSearchParams(
+    window.location.search
+  );
 
-    if (autogen === "1" && !mealplan && !loading) {
-      generateMealPlan();
-    }
-  }, [searchParams, mealplan, loading]);
+  const autogen = params.get("autogen");
+
+  if (autogen === "1" && !mealplan && !loading) {
+    generateMealPlan();
+  }
+}, [mealplan, loading]);;
 
   const exportPdf = async () => {
     if (!mealplan) return;
