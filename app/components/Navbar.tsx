@@ -6,94 +6,130 @@ import { useState } from "react";
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
+  const closeMenu = () => setOpen(false);
+
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-[#f8f6ef]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link
-          href="/"
-          className="text-2xl font-black text-[#7A9A2D]"
-        >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+        <Link href="/" className="text-2xl font-black text-[#7A9A2D]">
           PaleoAI
         </Link>
 
-        {/* Desktop */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold">
-          <Link href="/">🏠 Kezdőlap</Link>
-          <Link href="/mealplan">🥑 Étrend készítés</Link>
-          <Link href="/health">❤️ Egészség</Link>
-          <Link href="/dashboard">📊 Dashboard</Link>
-          <Link href="/profile">👤 Profil</Link>
+        <nav className="hidden items-center gap-8 text-sm font-semibold text-[#111827] md:flex">
+          <Link href="/" className="transition hover:text-[#7A9A2D]">
+            🏠 Kezdőlap
+          </Link>
+          <Link href="/mealplan" className="transition hover:text-[#7A9A2D]">
+            🥑 Étrend készítés
+          </Link>
+          <Link href="/health" className="transition hover:text-[#7A9A2D]">
+            ❤️ Egészség
+          </Link>
+          <Link href="/dashboard" className="transition hover:text-[#7A9A2D]">
+            📊 Dashboard
+          </Link>
+          <Link href="/profile" className="transition hover:text-[#7A9A2D]">
+            👤 Profil
+          </Link>
         </nav>
 
         <Link
           href="/profile"
-          className="hidden md:block rounded-full bg-[#7A9A2D] px-5 py-2 text-sm font-semibold text-white"
+          className="hidden rounded-full bg-[#7A9A2D] px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-[#6d8b28] md:block"
         >
           🚀 Kezdés
         </Link>
 
-        {/* Mobil hamburger */}
         <button
+          type="button"
           onClick={() => setOpen(true)}
-          className="md:hidden text-3xl"
+          aria-label="Menü megnyitása"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-3xl font-black text-[#111827] shadow-md md:hidden"
         >
           ☰
         </button>
       </div>
 
-      {/* Overlay */}
       {open && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/30"
-            onClick={() => setOpen(false)}
+        <div className="fixed inset-0 z-[999] md:hidden">
+          <button
+            type="button"
+            aria-label="Menü bezárása"
+            onClick={closeMenu}
+            className="absolute inset-0 h-full w-full bg-black/60"
           />
 
-          <div className="fixed right-0 top-0 h-full w-72 bg-white shadow-2xl p-6">
-            <div className="flex justify-between items-center">
-              <h2 className="font-black text-xl">
+          <aside className="absolute right-0 top-0 h-dvh w-[82vw] max-w-[340px] overflow-y-auto border-l border-stone-200 bg-[#f8f6ef] p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <Link
+                href="/"
+                onClick={closeMenu}
+                className="text-3xl font-black text-[#7A9A2D]"
+              >
                 PaleoAI
-              </h2>
+              </Link>
 
               <button
-                onClick={() => setOpen(false)}
-                className="text-2xl"
+                type="button"
+                onClick={closeMenu}
+                aria-label="Menü bezárása"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-3xl font-black text-[#111827] shadow-md"
               >
-                ✕
+                ×
               </button>
             </div>
 
-            <div className="mt-8 flex flex-col gap-5 font-semibold">
-              <Link href="/" onClick={() => setOpen(false)}>
+            <nav className="mt-10 flex flex-col gap-4 text-[#111827]">
+              <Link
+                href="/"
+                onClick={closeMenu}
+                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+              >
                 🏠 Kezdőlap
               </Link>
 
-              <Link href="/mealplan" onClick={() => setOpen(false)}>
+              <Link
+                href="/mealplan"
+                onClick={closeMenu}
+                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+              >
                 🥑 Étrend készítés
               </Link>
 
-              <Link href="/health" onClick={() => setOpen(false)}>
+              <Link
+                href="/health"
+                onClick={closeMenu}
+                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+              >
                 ❤️ Egészség
               </Link>
 
-              <Link href="/dashboard" onClick={() => setOpen(false)}>
+              <Link
+                href="/dashboard"
+                onClick={closeMenu}
+                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+              >
                 📊 Dashboard
-              </Link>
-
-              <Link href="/profile" onClick={() => setOpen(false)}>
-                👤 Profil
               </Link>
 
               <Link
                 href="/profile"
-                onClick={() => setOpen(false)}
-                className="mt-4 rounded-full bg-[#7A9A2D] px-5 py-3 text-center text-white"
+                onClick={closeMenu}
+                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
               >
-                🚀 Kezdés
+                👤 Profil
               </Link>
-            </div>
-          </div>
-        </>
+            </nav>
+
+            <Link
+              href="/profile"
+              onClick={closeMenu}
+              className="mt-8 block rounded-full bg-[#7A9A2D] px-6 py-4 text-center text-lg font-black text-white shadow-lg"
+            >
+              🥑 Étrend készítése
+            </Link>
+          </aside>
+        </div>
       )}
     </header>
   );
