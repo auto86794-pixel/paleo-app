@@ -30,10 +30,27 @@ export async function POST() {
 A felhasználó adatai:
 
 Életkor: ${profile.age ?? "nincs megadva"}
+Nem: ${profile.gender ?? "nincs megadva"}
+
 Testsúly: ${profile.weight ?? "nincs megadva"} kg
 Magasság: ${profile.height ?? "nincs megadva"} cm
+
 Cél: ${profile.goal ?? "nincs megadva"}
 Aktivitás: ${profile.activity ?? "nincs megadva"}
+
+Egészségügyi adatok:
+
+Inzulinrezisztencia:
+${profile.insulin_resistance ? "igen" : "nem"}
+
+2-es típusú cukorbetegség:
+${profile.diabetes ? "igen" : "nem"}
+
+Gluténmentes étrend szükséges:
+${profile.gluten_free ? "igen" : "nem"}
+
+Laktózmentes étrend szükséges:
+${profile.lactose_free ? "igen" : "nem"}
 
 Készíts személyre szabott 7 napos paleo étrendet.
 
@@ -61,19 +78,42 @@ A JSON formátuma pontosan:
 }
 
 Szabályok:
+
 - pontosan 7 nap legyen
 - magyar nyelv
 - paleo étrend
 - természetes alapanyagok
-- minden naphoz legyen reggeli, ebéd, vacsora
-- calories szám legyen
-- protein szám legyen
-- shoppingList tömb legyen
+
+- a napi kalóriát igazítsd a célhoz
+- a napi fehérjebevitelt igazítsd az aktivitási szinthez
+
+- ha inzulinrezisztencia vagy diabétesz szerepel:
+  - alacsony glikémiás terhelésű paleo étrendet készíts
+  - stabil vércukorszintet támogató ételeket válassz
+  - részesítsd előnyben a magas rosttartalmú zöldségeket
+  - kerüld a gyors vércukorszint-emelkedést okozó ételeket
+  - minimalizáld a magas cukortartalmú gyümölcsök használatát
+  - minden étkezés tartalmazzon megfelelő fehérjeforrást
+
+- ha gluténmentes szükséges:
+  - teljesen zárd ki a glutént
+
+- ha laktózmentes szükséges:
+  - ne használj laktózt tartalmazó tejtermékeket
+
+- minden naphoz legyen:
+  - reggeli
+  - ebéd
+  - vacsora
+  - calories szám
+  - protein szám
+
+- a shoppingList tartalmazza az összes szükséges alapanyagot
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.7,
+      temperature: 0.4,
       response_format: {
         type: "json_object",
       },

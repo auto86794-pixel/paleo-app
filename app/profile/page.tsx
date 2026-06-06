@@ -11,8 +11,16 @@ export default function ProfilePage() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
 
+  const [gender, setGender] = useState("Férfi");
+
   const [goal, setGoal] = useState("Fogyás");
   const [activity, setActivity] = useState("Közepes");
+
+  const [insulinResistance, setInsulinResistance] = useState(false);
+  const [diabetes, setDiabetes] = useState(false);
+
+  const [glutenFree, setGlutenFree] = useState(false);
+  const [lactoseFree, setLactoseFree] = useState(false);
 
   const saveProfile = async () => {
     const { error } = await supabase.from("profiles").insert([
@@ -20,8 +28,17 @@ export default function ProfilePage() {
         age: Number(age),
         weight: Number(weight),
         height: Number(height),
+
+        gender,
+
         goal,
         activity,
+
+        insulin_resistance: insulinResistance,
+        diabetes,
+
+        gluten_free: glutenFree,
+        lactose_free: lactoseFree,
       },
     ]);
 
@@ -31,9 +48,7 @@ export default function ProfilePage() {
       return;
     }
 
-    alert("Profil sikeresen mentve!");
-
-    router.push("/mealplan");
+    router.push("/mealplan?autogen=1");
   };
 
   return (
@@ -99,6 +114,21 @@ export default function ProfilePage() {
 
           <div className="mb-6">
             <label className="mb-2 block font-semibold text-[#111827]">
+              Nem
+            </label>
+
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black focus:border-[#7A9A2D] focus:outline-none"
+            >
+              <option>Férfi</option>
+              <option>Nő</option>
+            </select>
+          </div>
+
+          <div className="mb-6">
+            <label className="mb-2 block font-semibold text-[#111827]">
               Cél
             </label>
 
@@ -113,7 +143,7 @@ export default function ProfilePage() {
             </select>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-6">
             <label className="mb-2 block font-semibold text-[#111827]">
               Aktivitási szint
             </label>
@@ -127,6 +157,74 @@ export default function ProfilePage() {
               <option>Közepes</option>
               <option>Magas</option>
             </select>
+          </div>
+
+          <div className="mb-8">
+            <label className="mb-4 block font-semibold text-[#111827]">
+              Egészségügyi állapotok
+            </label>
+
+            <div className="rounded-xl border border-stone-200 bg-white p-4">
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 text-[#111827]">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={insulinResistance}
+                    onChange={(e) =>
+                      setInsulinResistance(e.target.checked)
+                    }
+                  />
+                  <span>Inzulinrezisztencia</span>
+                </label>
+
+                <label className="flex items-center gap-3 text-[#111827]">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={diabetes}
+                    onChange={(e) =>
+                      setDiabetes(e.target.checked)
+                    }
+                  />
+                  <span>2-es típusú cukorbetegség</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <label className="mb-4 block font-semibold text-[#111827]">
+              Ételérzékenységek
+            </label>
+
+            <div className="rounded-xl border border-stone-200 bg-white p-4">
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 text-[#111827]">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={glutenFree}
+                    onChange={(e) =>
+                      setGlutenFree(e.target.checked)
+                    }
+                  />
+                  <span>Gluténmentes</span>
+                </label>
+
+                <label className="flex items-center gap-3 text-[#111827]">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={lactoseFree}
+                    onChange={(e) =>
+                      setLactoseFree(e.target.checked)
+                    }
+                  />
+                  <span>Laktózmentes</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <button
