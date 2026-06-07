@@ -375,10 +375,7 @@ const generateRecipe = async (meal: string) => {
                           <p className="leading-7 text-[#4b5563]">
                             {day.breakfast}
                           </p>
-                          <p className="leading-7 text-[#4b5563]">
-  {day.breakfast}
-</p>
-
+                          
 <button
  
   type="button"

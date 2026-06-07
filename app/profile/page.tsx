@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../src/lib/supabase";
 
 export default function ProfilePage() {
   const router = useRouter();
+const [fullName, setFullName] = useState("");
 
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
@@ -16,39 +17,127 @@ export default function ProfilePage() {
   const [goal, setGoal] = useState("Fogyás");
   const [activity, setActivity] = useState("Közepes");
 
-  const [insulinResistance, setInsulinResistance] = useState(false);
-  const [diabetes, setDiabetes] = useState(false);
+  const [insulinResistance, setInsulinResistance] =
+    useState(false);
 
-  const [glutenFree, setGlutenFree] = useState(false);
-  const [lactoseFree, setLactoseFree] = useState(false);
+  const [diabetes, setDiabetes] =
+    useState(false);
+
+  const [glutenFree, setGlutenFree] =
+    useState(false);
+
+  const [lactoseFree, setLactoseFree] =
+    useState(false);
+    useEffect(() => {
+  loadProfile();
+}, []);
+
+const loadProfile = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!data) return;
+
+  setFullName(data.full_name ?? "");
+  setAge(String(data.age ?? ""));
+  setWeight(String(data.weight ?? ""));
+  setHeight(String(data.height ?? ""));
+  setGender(data.gender ?? "Férfi");
+  setGoal(data.goal ?? "Fogyás");
+  setActivity(data.activity ?? "Közepes");
+
+  setInsulinResistance(
+    data.insulin_resistance ?? false
+  );
+
+  setDiabetes(data.diabetes ?? false);
+
+  setGlutenFree(
+    data.gluten_free ?? false
+  );
+
+  setLactoseFree(
+    data.lactose_free ?? false
+  );
+};
 
   const saveProfile = async () => {
-    const { error } = await supabase.from("profiles").insert([
-      {
-        age: Number(age),
-        weight: Number(weight),
-        height: Number(height),
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        gender,
+      if (!user) {
+        alert("Először jelentkezz be.");
 
-        goal,
-        activity,
+        router.push("/login");
 
-        insulin_resistance: insulinResistance,
-        diabetes,
+        return;
+      }
 
-        gluten_free: glutenFree,
-        lactose_free: lactoseFree,
-      },
-    ]);
+      const { error } = await supabase
+  .from("profiles")
+  .upsert(
+    {
+      user_id: user.id,
 
-    if (error) {
-      console.error(error);
-      alert("Hiba: " + error.message);
-      return;
+      full_name: fullName,
+
+      age: Number(age),
+      weight: Number(weight),
+      height: Number(height),
+
+      gender,
+
+      goal,
+      activity,
+
+      insulin_resistance:
+        insulinResistance,
+
+      diabetes,
+
+      gluten_free: glutenFree,
+
+      lactose_free: lactoseFree,
+    },
+    {
+      onConflict: "user_id",
     }
+  );
+          
+        
 
-    router.push("/mealplan?autogen=1");
+      if (error) {
+        console.error(error);
+
+        alert(
+          "Mentési hiba: " +
+            error.message
+        );
+
+        return;
+      }
+
+      alert("Profil sikeresen mentve.");
+
+      router.push("/mealplan?autogen=1");
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Váratlan hiba történt."
+      );
+    }
   };
 
   return (
@@ -64,7 +153,9 @@ export default function ProfilePage() {
           </h1>
 
           <p className="mt-4 text-lg text-gray-600">
-            Add meg adataidat, hogy az AI személyre szabott paleo étrendet
+            Add meg adataidat,
+            hogy az AI személyre
+            szabott paleo étrendet
             készíthessen.
           </p>
         </div>
@@ -78,9 +169,13 @@ export default function ProfilePage() {
             <input
               type="number"
               value={age}
-              onChange={(e) => setAge(e.target.value)}
+              onChange={(e) =>
+                setAge(
+                  e.target.value
+                )
+              }
               placeholder="Pl. 45"
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black placeholder:text-stone-500 focus:border-[#7A9A2D] focus:outline-none"
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             />
           </div>
 
@@ -92,9 +187,13 @@ export default function ProfilePage() {
             <input
               type="number"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) =>
+                setWeight(
+                  e.target.value
+                )
+              }
               placeholder="Pl. 92"
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black placeholder:text-stone-500 focus:border-[#7A9A2D] focus:outline-none"
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             />
           </div>
 
@@ -106,9 +205,13 @@ export default function ProfilePage() {
             <input
               type="number"
               value={height}
-              onChange={(e) => setHeight(e.target.value)}
+              onChange={(e) =>
+                setHeight(
+                  e.target.value
+                )
+              }
               placeholder="Pl. 182"
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black placeholder:text-stone-500 focus:border-[#7A9A2D] focus:outline-none"
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             />
           </div>
 
@@ -119,11 +222,20 @@ export default function ProfilePage() {
 
             <select
               value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black focus:border-[#7A9A2D] focus:outline-none"
+              onChange={(e) =>
+                setGender(
+                  e.target.value
+                )
+              }
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             >
-              <option>Férfi</option>
-              <option>Nő</option>
+              <option>
+                Férfi
+              </option>
+
+              <option>
+                Nő
+              </option>
             </select>
           </div>
 
@@ -134,12 +246,24 @@ export default function ProfilePage() {
 
             <select
               value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black focus:border-[#7A9A2D] focus:outline-none"
+              onChange={(e) =>
+                setGoal(
+                  e.target.value
+                )
+              }
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             >
-              <option>Fogyás</option>
-              <option>Tömegnövelés</option>
-              <option>Egészséges életmód</option>
+              <option>
+                Fogyás
+              </option>
+
+              <option>
+                Tömegnövelés
+              </option>
+
+              <option>
+                Egészséges életmód
+              </option>
             </select>
           </div>
 
@@ -150,12 +274,24 @@ export default function ProfilePage() {
 
             <select
               value={activity}
-              onChange={(e) => setActivity(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black focus:border-[#7A9A2D] focus:outline-none"
+              onChange={(e) =>
+                setActivity(
+                  e.target.value
+                )
+              }
+              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-black"
             >
-              <option>Alacsony</option>
-              <option>Közepes</option>
-              <option>Magas</option>
+              <option>
+                Alacsony
+              </option>
+
+              <option>
+                Közepes
+              </option>
+
+              <option>
+                Magas
+              </option>
             </select>
           </div>
 
@@ -166,28 +302,41 @@ export default function ProfilePage() {
 
             <div className="rounded-xl border border-stone-200 bg-white p-4">
               <div className="space-y-4">
-                <label className="flex items-center gap-3 text-[#111827]">
+                <label className="flex items-center gap-3">
                   <input
                     type="checkbox"
-                    className="h-4 w-4"
-                    checked={insulinResistance}
+                    checked={
+                      insulinResistance
+                    }
                     onChange={(e) =>
-                      setInsulinResistance(e.target.checked)
+                      setInsulinResistance(
+                        e.target.checked
+                      )
                     }
                   />
-                  <span>Inzulinrezisztencia</span>
+
+                  <span>
+                    Inzulinrezisztencia
+                  </span>
                 </label>
 
-                <label className="flex items-center gap-3 text-[#111827]">
+                <label className="flex items-center gap-3">
                   <input
                     type="checkbox"
-                    className="h-4 w-4"
-                    checked={diabetes}
+                    checked={
+                      diabetes
+                    }
                     onChange={(e) =>
-                      setDiabetes(e.target.checked)
+                      setDiabetes(
+                        e.target.checked
+                      )
                     }
                   />
-                  <span>2-es típusú cukorbetegség</span>
+
+                  <span>
+                    2-es típusú
+                    cukorbetegség
+                  </span>
                 </label>
               </div>
             </div>
@@ -200,28 +349,40 @@ export default function ProfilePage() {
 
             <div className="rounded-xl border border-stone-200 bg-white p-4">
               <div className="space-y-4">
-                <label className="flex items-center gap-3 text-[#111827]">
+                <label className="flex items-center gap-3">
                   <input
                     type="checkbox"
-                    className="h-4 w-4"
-                    checked={glutenFree}
+                    checked={
+                      glutenFree
+                    }
                     onChange={(e) =>
-                      setGlutenFree(e.target.checked)
+                      setGlutenFree(
+                        e.target.checked
+                      )
                     }
                   />
-                  <span>Gluténmentes</span>
+
+                  <span>
+                    Gluténmentes
+                  </span>
                 </label>
 
-                <label className="flex items-center gap-3 text-[#111827]">
+                <label className="flex items-center gap-3">
                   <input
                     type="checkbox"
-                    className="h-4 w-4"
-                    checked={lactoseFree}
+                    checked={
+                      lactoseFree
+                    }
                     onChange={(e) =>
-                      setLactoseFree(e.target.checked)
+                      setLactoseFree(
+                        e.target.checked
+                      )
                     }
                   />
-                  <span>Laktózmentes</span>
+
+                  <span>
+                    Laktózmentes
+                  </span>
                 </label>
               </div>
             </div>
@@ -229,7 +390,7 @@ export default function ProfilePage() {
 
           <button
             onClick={saveProfile}
-            className="w-full rounded-xl bg-[#7A9A2D] py-4 text-lg font-semibold text-white transition-all hover:bg-[#6d8b28] hover:shadow-lg"
+            className="w-full rounded-xl bg-[#7A9A2D] py-4 text-lg font-semibold text-white transition-all hover:bg-[#6d8b28]"
           >
             Profil mentése
           </button>

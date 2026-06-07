@@ -14,7 +14,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../src/lib/supabase";
 
 type GlucoseLog = {
+  
   id: number;
+  user_id: string;
   created_at: string;
 
   fasting: number | null;
@@ -24,6 +26,7 @@ type GlucoseLog = {
 
   note: string | null;
 };
+
 
 export default function HealthPage() {
   const [fasting, setFasting] = useState("");
@@ -40,44 +43,89 @@ export default function HealthPage() {
     useState(false);
 
   const loadLogs = async () => {
-    const { data, error } = await supabase
-      .from("glucose_logs")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+  if (!user) return;
 
-    setLogs(data || []);
+  const { data, error } = await supabase
+    .from("glucose_logs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setLogs(data || []);
+
   };
 
   useEffect(() => {
-    loadLogs();
-  }, []);
+     const init = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    await loadLogs();
+  };
+
+  init();
+}, []);
+  
 
   const saveLog = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const { error } = await supabase
-        .from("glucose_logs")
-        .insert([
-          {
-            fasting: fasting ? Number(fasting) : null,
-            breakfast_after: breakfastAfter
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Először jelentkezz be.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("glucose_logs")
+      .insert([
+        {
+          user_id: user.id,
+
+          fasting: fasting
+            ? Number(fasting)
+            : null,
+
+          breakfast_after:
+            breakfastAfter
               ? Number(breakfastAfter)
               : null,
-            lunch_after: lunchAfter
-              ? Number(lunchAfter)
-              : null,
-            dinner_after: dinnerAfter
+
+          lunch_after: lunchAfter
+            ? Number(lunchAfter)
+            : null,
+
+          dinner_after:
+            dinnerAfter
               ? Number(dinnerAfter)
               : null,
-            note,
-          },
-        ]);
+
+          note,
+        },
+      ]);
+          
+        
 
       if (error) {
         alert(error.message);

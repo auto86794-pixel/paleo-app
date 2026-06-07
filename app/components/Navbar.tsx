@@ -1,134 +1,197 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/src/lib/supabase";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-  const closeMenu = () => setOpen(false);
+  const [open, setOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setUserEmail(session?.user?.email ?? null);
+    };
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUserEmail(session?.user?.email ?? null);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+
+    setUserEmail(null);
+    setOpen(false);
+
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/5 bg-[#f8f6ef]/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-stone-200 bg-[#f8f6ef]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <Link href="/" className="text-2xl font-black text-[#7A9A2D]">
+        <Link
+          href="/"
+          className="text-2xl font-black text-[#7A9A2D]"
+        >
           PaleoAI
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-[#111827] md:flex">
-          <Link href="/" className="transition hover:text-[#7A9A2D]">
-            🏠 Kezdőlap
-          </Link>
-          <Link href="/mealplan" className="transition hover:text-[#7A9A2D]">
+          <Link href="/">🏠 Kezdőlap</Link>
+
+          <Link href="/mealplan">
             🥑 Étrend készítés
           </Link>
-          <Link href="/health" className="transition hover:text-[#7A9A2D]">
+
+          <Link href="/health">
             ❤️ Egészség
           </Link>
-          <Link href="/dashboard" className="transition hover:text-[#7A9A2D]">
+
+          <Link href="/dashboard">
             📊 Dashboard
           </Link>
-          <Link href="/profile" className="transition hover:text-[#7A9A2D]">
+
+          <Link href="/profile">
             👤 Profil
           </Link>
         </nav>
 
-        <Link
-          href="/profile"
-          className="hidden rounded-full bg-[#7A9A2D] px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-[#6d8b28] md:block"
-        >
-          🚀 Kezdés
-        </Link>
+        {userEmail ? (
+          <div className="hidden items-center gap-3 md:flex">
+            <span className="max-w-[220px] truncate text-sm text-stone-500">
+              {userEmail}
+            </span>
+
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+            >
+              🚪 Kijelentkezés
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="hidden rounded-full bg-[#7A9A2D] px-5 py-2 text-sm font-bold text-white md:block"
+          >
+            🚀 Bejelentkezés
+          </Link>
+        )}
 
         <button
-          type="button"
           onClick={() => setOpen(true)}
-          aria-label="Menü megnyitása"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-3xl font-black text-[#111827] shadow-md md:hidden"
+          className="text-3xl md:hidden"
         >
           ☰
         </button>
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-[999] md:hidden">
-          <button
-            type="button"
-            aria-label="Menü bezárása"
-            onClick={closeMenu}
-            className="absolute inset-0 h-full w-full bg-black/60"
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setOpen(false)}
           />
 
-          <aside className="absolute right-0 top-0 h-dvh w-[82vw] max-w-[340px] overflow-y-auto border-l border-stone-200 bg-[#f8f6ef] p-6 shadow-2xl">
+          <div className="absolute right-0 top-0 h-full w-80 bg-[#f8f6ef] p-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <Link
-                href="/"
-                onClick={closeMenu}
-                className="text-3xl font-black text-[#7A9A2D]"
-              >
+              <h2 className="text-2xl font-black text-[#7A9A2D]">
                 PaleoAI
-              </Link>
+              </h2>
 
               <button
-                type="button"
-                onClick={closeMenu}
-                aria-label="Menü bezárása"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-3xl font-black text-[#111827] shadow-md"
+                onClick={() => setOpen(false)}
+                className="text-3xl"
               >
                 ×
               </button>
             </div>
 
-            <nav className="mt-10 flex flex-col gap-4 text-[#111827]">
+            <div className="mt-8 flex flex-col gap-4">
               <Link
                 href="/"
-                onClick={closeMenu}
-                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+                onClick={() => setOpen(false)}
               >
                 🏠 Kezdőlap
               </Link>
 
               <Link
                 href="/mealplan"
-                onClick={closeMenu}
-                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+                onClick={() => setOpen(false)}
               >
                 🥑 Étrend készítés
               </Link>
 
               <Link
                 href="/health"
-                onClick={closeMenu}
-                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+                onClick={() => setOpen(false)}
               >
                 ❤️ Egészség
               </Link>
 
               <Link
                 href="/dashboard"
-                onClick={closeMenu}
-                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+                onClick={() => setOpen(false)}
               >
                 📊 Dashboard
               </Link>
 
               <Link
                 href="/profile"
-                onClick={closeMenu}
-                className="rounded-2xl bg-white px-5 py-4 text-lg font-bold shadow-sm"
+                onClick={() => setOpen(false)}
               >
                 👤 Profil
               </Link>
-            </nav>
+            </div>
 
-            <Link
-              href="/profile"
-              onClick={closeMenu}
-              className="mt-8 block rounded-full bg-[#7A9A2D] px-6 py-4 text-center text-lg font-black text-white shadow-lg"
-            >
-              🥑 Étrend készítése
-            </Link>
-          </aside>
+            {userEmail ? (
+              <>
+                <div className="mt-8 rounded-xl bg-white p-4">
+                  <p className="text-sm text-stone-500">
+                    Bejelentkezve:
+                  </p>
+
+                  <p className="mt-1 break-all font-semibold">
+                    {userEmail}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="mt-4 w-full rounded-full border border-red-200 py-3 font-bold text-red-600"
+                >
+                  🚪 Kijelentkezés
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="mt-8 block rounded-full bg-[#7A9A2D] py-3 text-center font-bold text-white"
+              >
+                🚀 Bejelentkezés
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </header>

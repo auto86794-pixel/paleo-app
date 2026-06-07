@@ -7,29 +7,32 @@ import { supabase } from "../../src/lib/supabase";
 type Recipe = {
   id: number;
   meal_name: string;
-  ingredients: string[];
-  instructions: string[];
+  ingredients: string[] | null;
+  instructions: string[] | null;
+};
+
+type Profile = {
+  id: number;
+  user_id: string;
+  full_name: string | null;
+  diabetes: boolean | null;
+  insulin_resistance: boolean | null;
 };
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [userName, setUserName] = useState("Felhasználó");
 
-  const [hasProfile, setHasProfile] =
-    useState(false);
-
-  const [lastGlucose, setLastGlucose] =
-    useState<number | null>(null);
-
+  const [lastGlucose, setLastGlucose] = useState<number | null>(null);
   const [trend, setTrend] = useState("→");
 
-  const [dietName, setDietName] =
-    useState("Paleo");
+  const [dietName, setDietName] = useState("Paleo");
+  const [dietDescription, setDietDescription] = useState(
+    "Személyre szabott paleo étrend"
+  );
 
-  const [dietDescription, setDietDescription] =
-    useState("Személyre szabott paleo étrend");
-
-  const [lastRecipe, setLastRecipe] =
-    useState<Recipe | null>(null);
+  const [lastRecipe, setLastRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     initializeDashboard();
@@ -39,65 +42,78 @@ export default function DashboardPage() {
     try {
       setLoading(true);
 
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        console.error(error);
+        setHasProfile(false);
+        return;
+      }
+
       await Promise.all([
-        loadProfile(),
-        loadLastGlucose(),
-        loadLastRecipe(),
+        loadProfile(user.id),
+        loadLastGlucose(user.id),
+        loadLastRecipe(user.id),
       ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadProfile = async () => {
+  const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
-      .order("id", { ascending: false })
-      .limit(1);
+      .select(
+        `
+        id,
+        user_id,
+        full_name,
+        diabetes,
+        insulin_resistance
+      `
+      )
+      .eq("user_id", userId)
+      .maybeSingle<Profile>();
 
     if (error) {
       console.error(error);
+      setHasProfile(false);
       return;
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
       setHasProfile(false);
       return;
     }
 
     setHasProfile(true);
 
-    const profile = data[0];
+    if (data.full_name) {
+      setUserName(data.full_name);
+    }
 
-    if (profile.diabetes) {
+    if (data.diabetes) {
       setDietName("Paleo + Diabétesz");
-      setDietDescription(
-        "2-es típusú cukorbetegség támogatás"
-      );
-    } else if (
-      profile.insulin_resistance
-    ) {
+      setDietDescription("2-es típusú cukorbetegség támogatás");
+    } else if (data.insulin_resistance) {
       setDietName("Paleo + IR");
-      setDietDescription(
-        "Inzulinrezisztencia támogatás"
-      );
+      setDietDescription("Inzulinrezisztencia támogatás");
     } else {
       setDietName("Paleo");
-      setDietDescription(
-        "Személyre szabott paleo étrend"
-      );
+      setDietDescription("Személyre szabott paleo étrend");
     }
   };
 
-  const loadLastGlucose = async () => {
+  const loadLastGlucose = async (userId: string) => {
     const { data, error } = await supabase
       .from("glucose_logs")
       .select("fasting")
+      .eq("user_id", userId)
       .not("fasting", "is", null)
-      .order("created_at", {
-        ascending: false,
-      })
+      .order("created_at", { ascending: false })
       .limit(2);
 
     if (error) {
@@ -109,15 +125,16 @@ export default function DashboardPage() {
       return;
     }
 
-    setLastGlucose(data[0].fasting);
+    const latest = Number(data[0].fasting);
+    setLastGlucose(latest);
 
     if (data.length >= 2) {
-      const latest = Number(data[0].fasting);
       const previous = Number(data[1].fasting);
+      const diff = latest - previous;
 
-      if (latest > previous) {
+      if (diff > 0.2) {
         setTrend("↑");
-      } else if (latest < previous) {
+      } else if (diff < -0.2) {
         setTrend("↓");
       } else {
         setTrend("→");
@@ -125,13 +142,19 @@ export default function DashboardPage() {
     }
   };
 
-  const loadLastRecipe = async () => {
+  const loadLastRecipe = async (userId: string) => {
     const { data, error } = await supabase
       .from("recipes")
-      .select("*")
-      .order("created_at", {
-        ascending: false,
-      })
+      .select(
+        `
+        id,
+        meal_name,
+        ingredients,
+        instructions
+      `
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .limit(1);
 
     if (error) {
@@ -140,15 +163,33 @@ export default function DashboardPage() {
     }
 
     if (data && data.length > 0) {
-      setLastRecipe(data[0]);
+      setLastRecipe(data[0] as Recipe);
     }
   };
+
+  const glucoseColor =
+    lastGlucose === null
+      ? "text-[#111827]"
+      : lastGlucose < 5.6
+      ? "text-green-600"
+      : lastGlucose < 7
+      ? "text-yellow-600"
+      : "text-red-600";
+
+  const aiSummary =
+    lastGlucose === null
+      ? "Még nincs elegendő vércukor adat az elemzéshez."
+      : lastGlucose < 5.6
+      ? "A legutóbbi éhomi vércukorszinted kedvező tartományban van."
+      : lastGlucose < 7
+      ? "A legutóbbi érték enyhén emelkedett, érdemes figyelni az étkezésre és a mozgásra."
+      : "A legutóbbi érték magasabb, érdemes rendszeresen követni és szükség esetén szakemberrel egyeztetni.";
 
   if (loading) {
     return (
       <main className="min-h-screen bg-[#f8f6ef] px-6 py-16">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-[2rem] bg-white p-10 shadow-xl text-center">
+          <div className="rounded-[2rem] bg-white p-10 text-center shadow-xl">
             <h1 className="text-3xl font-black text-[#111827]">
               PaleoAI betöltése...
             </h1>
@@ -162,14 +203,13 @@ export default function DashboardPage() {
     return (
       <main className="min-h-screen bg-[#f8f6ef] px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <div className="rounded-[2rem] bg-white p-10 shadow-xl text-center">
+          <div className="rounded-[2rem] bg-white p-10 text-center shadow-xl">
             <h1 className="text-4xl font-black text-[#111827]">
               👋 Üdv a PaleoAI-ban
             </h1>
 
             <p className="mt-4 text-[#6b7280]">
-              A Dashboard használatához
-              először töltsd ki a profilodat.
+              A Dashboard használatához először töltsd ki a profilodat.
             </p>
 
             <Link
@@ -193,12 +233,12 @@ export default function DashboardPage() {
           </p>
 
           <h1 className="mt-3 text-5xl font-black text-[#111827]">
-            Dashboard
+            Szia, {userName}! 👋
           </h1>
 
           <p className="mt-4 text-lg text-[#6b7280]">
-            Egészségügyi adatok,
-            étrend és AI ajánlások egy helyen.
+            Itt látod a saját egészségügyi adataidat, étrendedet és AI
+            ajánlásaidat.
           </p>
         </div>
 
@@ -223,9 +263,11 @@ export default function DashboardPage() {
               </>
             ) : (
               <>
-                <p className="mt-4 text-5xl font-black text-[#111827]">
-                  {lastGlucose} mmol/L
+                <p className={`mt-4 text-5xl font-black ${glucoseColor}`}>
+                  {lastGlucose}
                 </p>
+
+                <p className="mt-1 text-sm text-[#6b7280]">mmol/L</p>
 
                 <p className="mt-3 font-bold text-[#7A9A2D]">
                   Trend: {trend}
@@ -239,10 +281,7 @@ export default function DashboardPage() {
               🤖 AI Elemzés
             </h2>
 
-            <p className="mt-4 leading-7 text-[#6b7280]">
-              Az AI egészségügyi
-              összefoglaló hamarosan itt jelenik meg.
-            </p>
+            <p className="mt-4 leading-7 text-[#6b7280]">{aiSummary}</p>
           </div>
 
           <div className="rounded-[2rem] bg-white p-8 shadow-xl">
@@ -254,9 +293,7 @@ export default function DashboardPage() {
               {dietName}
             </p>
 
-            <p className="mt-3 text-[#6b7280]">
-              {dietDescription}
-            </p>
+            <p className="mt-3 text-[#6b7280]">{dietDescription}</p>
           </div>
         </div>
 
@@ -273,13 +310,11 @@ export default function DashboardPage() {
                 </p>
 
                 <p className="mt-3 text-[#6b7280]">
-                  {lastRecipe.ingredients?.length ?? 0}
-                  {" "}hozzávaló
+                  {lastRecipe.ingredients?.length ?? 0} hozzávaló
                 </p>
 
                 <p className="text-[#6b7280]">
-                  {lastRecipe.instructions?.length ?? 0}
-                  {" "}lépés
+                  {lastRecipe.instructions?.length ?? 0} lépés
                 </p>
               </>
             ) : (
@@ -304,8 +339,7 @@ export default function DashboardPage() {
             </h2>
 
             <p className="mt-4 text-[#6b7280]">
-              Bevásárlólista integráció
-              következik.
+              A személyes bevásárlólista integráció hamarosan elérhető lesz.
             </p>
           </div>
 
@@ -314,12 +348,10 @@ export default function DashboardPage() {
               ❤️ Egészség
             </h2>
 
-            <p className="mt-4 text-[#111827]">
-              Vércukor napló
-            </p>
+            <p className="mt-4 text-[#111827]">Személyes vércukor napló</p>
 
             <p className="mt-3 text-[#6b7280]">
-              AI elemzés és grafikonok
+              AI elemzés és grafikonok saját adatok alapján.
             </p>
           </div>
         </div>
