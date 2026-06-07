@@ -130,6 +130,7 @@ export default function Navbar() {
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
+                className="text-lg font-semibold text-[#111827]"
               >
                 🏠 Kezdőlap
               </Link>
@@ -137,6 +138,7 @@ export default function Navbar() {
               <Link
                 href="/mealplan"
                 onClick={() => setOpen(false)}
+                className="text-lg font-semibold text-[#111827]"
               >
                 🥑 Étrend készítés
               </Link>
@@ -144,6 +146,7 @@ export default function Navbar() {
               <Link
                 href="/health"
                 onClick={() => setOpen(false)}
+                className="text-lg font-semibold text-[#111827]"
               >
                 ❤️ Egészség
               </Link>
@@ -151,6 +154,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard"
                 onClick={() => setOpen(false)}
+                className="text-lg font-semibold text-[#111827]"
               >
                 📊 Dashboard
               </Link>
@@ -158,6 +162,7 @@ export default function Navbar() {
               <Link
                 href="/profile"
                 onClick={() => setOpen(false)}
+                className="text-lg font-semibold text-[#111827]"
               >
                 👤 Profil
               </Link>
