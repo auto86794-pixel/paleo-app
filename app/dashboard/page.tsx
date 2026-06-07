@@ -22,7 +22,7 @@ type Profile = {
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [hasProfile, setHasProfile] = useState(false);
-  const [userName, setUserName] = useState("Felhasználó");
+  const [userName, setUserName] = useState("Üdvözlünk a PaleoAI rendszerében!");
 
   const [lastGlucose, setLastGlucose] = useState<number | null>(null);
   const [trend, setTrend] = useState("→");
