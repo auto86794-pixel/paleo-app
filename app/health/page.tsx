@@ -26,6 +26,18 @@ type GlucoseLog = {
 
   note: string | null;
 };
+type BloodPressureLog = {
+  id: number;
+  user_id: string;
+  created_at: string;
+
+  systolic: number;
+  diastolic: number;
+  pulse: number | null;
+
+  note: string | null;
+};
+
 
 
 export default function HealthPage() {
@@ -41,6 +53,13 @@ export default function HealthPage() {
   const [analysis, setAnalysis] = useState("");
   const [analysisLoading, setAnalysisLoading] =
     useState(false);
+
+    const [systolic, setSystolic] = useState("");
+const [diastolic, setDiastolic] = useState("");
+const [pulse, setPulse] = useState("");
+
+const [bloodPressureLogs, setBloodPressureLogs] =
+  useState<BloodPressureLog[]>([]);
 
   const loadLogs = async () => {
   const {
@@ -65,6 +84,31 @@ export default function HealthPage() {
   setLogs(data || []);
 
   };
+const loadBloodPressureLogs = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("blood_pressure_logs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setBloodPressureLogs(
+    (data as BloodPressureLog[]) || []
+  );
+};
+
 
   useEffect(() => {
      const init = async () => {
@@ -78,11 +122,52 @@ export default function HealthPage() {
     }
 
     await loadLogs();
+    await loadBloodPressureLogs();
   };
 
   init();
 }, []);
   
+const saveBloodPressure = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Először jelentkezz be.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("blood_pressure_logs")
+      .insert([
+        {
+          user_id: user.id,
+          systolic: Number(systolic),
+          diastolic: Number(diastolic),
+          pulse: pulse ? Number(pulse) : null,
+          note,
+        },
+      ]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setSystolic("");
+    setDiastolic("");
+    setPulse("");
+
+    await loadBloodPressureLogs();
+
+    alert("Vérnyomás napló mentve.");
+  } catch (error) {
+    console.error(error);
+    alert("Mentési hiba.");
+  }
+};
 
   const saveLog = async () => {
   try {
@@ -208,6 +293,37 @@ export default function HealthPage() {
           <h2 className="mb-6 text-2xl font-black text-[#111827]">
             Új vércukor bejegyzés
           </h2>
+
+          <h2>🫀 Új vérnyomás bejegyzés</h2>
+
+<input
+  type="number"
+  placeholder="Szisztolés (pl. 120)"
+  value={systolic}
+  onChange={(e) => setSystolic(e.target.value)}
+  className="rounded-xl border border-stone-300 px-4 py-3 text-black"
+/>
+
+<input
+  type="number"
+  placeholder="Diasztolés (pl. 80)"
+  value={diastolic}
+  onChange={(e) => setDiastolic(e.target.value)}
+  className="rounded-xl border border-stone-300 px-4 py-3 text-black"
+/>
+
+<input
+  type="number"
+  placeholder="Pulzus"
+  value={pulse}
+  onChange={(e) => setPulse(e.target.value)}
+  className="rounded-xl border border-stone-300 px-4 py-3 text-black"
+/>
+
+<button onClick={saveBloodPressure}
+ className="mt-6 rounded-full bg-[#7A9A2D] px-8 py-4 font-bold text-white transition hover:bg-[#6d8b28]">
+  Vérnyomás mentése
+</button>
 
           <div className="grid gap-4 md:grid-cols-2">
             <input
