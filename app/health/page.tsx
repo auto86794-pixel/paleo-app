@@ -288,13 +288,9 @@ const saveBloodPressure = async () => {
             elemzése.
           </p>
         </div>
-
-        <div className="rounded-[2rem] bg-white p-8 shadow-xl">
-          <h2 className="mb-6 text-2xl font-black text-[#111827]">
-            Új vércukor bejegyzés
-          </h2>
-
-          <h2>🫀 Új vérnyomás bejegyzés</h2>
+        <div className="mb-10 rounded-[2rem] bg-white p-8 shadow-xl">
+ <h2>🫀 Új vérnyomás bejegyzés</h2>
+ <div className="grid gap-4 md:grid-cols-3">
 
 <input
   type="number"
@@ -320,10 +316,24 @@ const saveBloodPressure = async () => {
   className="rounded-xl border border-stone-300 px-4 py-3 text-black"
 />
 
-<button onClick={saveBloodPressure}
- className="mt-6 rounded-full bg-[#7A9A2D] px-8 py-4 font-bold text-white transition hover:bg-[#6d8b28]">
+</div>
+
+<button
+  onClick={saveBloodPressure}
+  className="mt-6 rounded-full bg-[#7A9A2D] px-8 py-4 font-bold text-white transition hover:bg-[#6d8b28]"
+>
   Vérnyomás mentése
 </button>
+</div>
+
+
+
+        <div className="rounded-[2rem] bg-white p-8 shadow-xl">
+          <h2 className="mb-6 text-2xl font-black text-[#111827]">
+            Új vércukor bejegyzés
+          </h2>
+
+         
 
           <div className="grid gap-4 md:grid-cols-2">
             <input
