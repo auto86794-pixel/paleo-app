@@ -99,7 +99,7 @@ export default function Navbar() {
 
         <button
           onClick={() => setOpen(true)}
-          className="text-3xl md:hidden"
+          className="text-3xl font-black text-[#111827] md:hidden"
         >
           ☰
         </button>
@@ -120,7 +120,7 @@ export default function Navbar() {
 
               <button
                 onClick={() => setOpen(false)}
-                className="text-3xl"
+                className="text-3xl font-black text-[#111827]"
               >
                 ×
               </button>
