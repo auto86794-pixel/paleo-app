@@ -271,6 +271,17 @@ const saveBloodPressure = async () => {
       fasting: log.fasting,
     }));
 
+    const bloodPressureChartData = bloodPressureLogs
+  .slice()
+  .reverse()
+  .map((log) => ({
+    date: new Date(log.created_at).toLocaleDateString(
+      "hu-HU"
+    ),
+    systolic: log.systolic,
+    diastolic: log.diastolic,
+  }));
+
   return (
     <main className="min-h-screen bg-[#f8f6ef] px-6 py-16">
       <div className="mx-auto max-w-5xl">
@@ -398,6 +409,43 @@ const saveBloodPressure = async () => {
             {loading ? "Mentés..." : "Mentés"}
           </button>
         </div>
+        <div className="mt-10 rounded-[2rem] bg-white p-8 shadow-xl">
+  <h2 className="mb-6 text-2xl font-black text-[#111827]">
+    💓 Vérnyomás trend
+  </h2>
+
+  <div className="h-[320px]">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={bloodPressureChartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+
+        <XAxis dataKey="date" />
+
+        <YAxis />
+
+        <Tooltip />
+
+        <Line
+          type="monotone"
+          dataKey="systolic"
+          name="Szisztolés"
+          stroke="#dc2626"
+          strokeWidth={3}
+        />
+
+        <Line
+          type="monotone"
+          dataKey="diastolic"
+          name="Diasztolés"
+          stroke="#2563eb"
+          strokeWidth={3}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+</div>
+
+
 
         <div className="mt-10 rounded-[2rem] bg-white p-8 shadow-xl">
           <h2 className="mb-6 text-2xl font-black text-[#111827]">
